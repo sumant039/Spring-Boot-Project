@@ -1,27 +1,21 @@
-pipeline {
-    agent any
-    stages {
-        stage('Build') {
-            steps {
-                sh 'mvn clean package'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage('Deploy') {
-            environment {
-                APP_NAME = 'my-spring-boot-app'
-            }
-            steps {
-                script {
-                    docker.build("$APP_NAME:${env.BUILD_NUMBER}")
-                    docker.withRegistry('https://hub.docker.com', 'docker-credentials') {
-                        docker.image("$APP_NAME:${env.BUILD_NUMBER}").push()
-                    }
-            }
-        }
-    }
+node {
+  stage('Checkout') {
+    // Checkout the source code from the repository
+    git 'https://github.com/sumant039/Spring-Boot-Project.git'
+  }
+  
+  stage('Build') {
+    // Build the Java project using Maven
+    sh 'mvn clean install'
+  }
+  
+  stage('Test') {
+    // Run unit tests using Maven
+    sh 'mvn test'
+  }
+  
+  stage('Deploy') {
+  
+  }
 }
+

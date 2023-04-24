@@ -1,21 +1,34 @@
-node {
-  stage('Checkout') {
-    // Checkout the source code from the repository
-    git 'https://github.com/sumant039/Spring-Boot-Project.git'
-  }
-  
-  stage('Build') {
-    // Build the Java project using Maven
-    sh 'mvn clean install'
-  }
-  
-  stage('Test') {
-    // Run unit tests using Maven
-    sh 'mvn test'
-  }
-  
-  stage('Deploy') {
-  
-  }
-}
 
+pipeline {
+    agent any
+    environment{
+        BUILD_NUMBER = "${BUILD_NUMBER}"
+    }
+   
+    stages {
+        stage('Build MAven') {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/sumant039/Spring-Boot-Project']])
+                sh 'mvn clean install'
+            }
+        }
+        stage('Build docker image') {
+            steps {
+                script{
+                    sh 'docker build -t sumant039/spring-boot-docker:${env.BUILD_NUMBER} .'
+                }
+            }
+        }
+        stage('Deploy images') {
+            steps {
+                script{
+                    withCredentials([string(credentialsId: 'sumant039', variable: 'dockerhubpas')]) {
+                    sh 'docker login -u sumant039 -p ${dockerhubpas}'
+    // some block
+}                   
+                    sh 'docker push sumant039/spring-boot-docker:${env.BUILD_NUMBER}'
+                }
+            }
+        }
+    }
+}
